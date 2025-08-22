@@ -2,6 +2,11 @@ import jax
 import jax.numpy as jnp
 import mctx
 from mctx import RootFnOutput, RecurrentFnOutput
+# Print entire path
+# Fix no mcts version
+# Maps with multiple routes
+# Randomize maps
+
 
 # The program takes the startPos variable with the coordinates in the first two indices and returns the next best move and probability distribution
 
@@ -14,7 +19,7 @@ maze = jnp.array([
     [1, 1, 0, 1, 0],
     [0, 0, 0, 1, 0],
     [0, 1, 1, 1, 0],
-    [0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
 ])
 
 goal = [4, 4]
@@ -27,7 +32,7 @@ def is_valid_tile(embedding):
     return not_wall & in_bounds
     
 
-startPos = jnp.array([[0, 0, 0]])
+startPos = jnp.array([[0, 4, 0]])
 downEmbeding = startPos.at[0, 0].add(1)
 upEmbeding = startPos.at[0, 0].add(-1)
 rightEmbeding = startPos.at[0, 1].add(1)

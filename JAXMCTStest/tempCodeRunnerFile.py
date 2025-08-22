@@ -1,1 +1,0 @@
-discount = jnp.array([0.99])    

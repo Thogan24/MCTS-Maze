@@ -7,8 +7,8 @@ import math
 #(0, 0) AT BOTTOM LEFT. (4, 4) AT TOP RIGHT
 maze = [
     [0, 0, 0, 1, 0],
-    [0, 1, 0, 1, 0],
     [0, 1, 0, 0, 0],
+    [0, 1, 0, 1, 0],
     [0, 1, 0, 1, 0],
     [0, 1, 0, 1, 0],
 ]
@@ -170,7 +170,7 @@ def askForBestMove():
         node = root
         findAllChildren(node)
         for node in arrayOfAllNodes:
-            if (node.state == [xCord, yCord]) and (node.visits > 100):
+            if (node.state == [xCord, yCord]) and (node.visits >= 500):
                 print("Node Visits: " + str(node.visits))
                 bestAverageReward = -100000
                 bestChild = Node([-5, -5], 0)
