@@ -1,1 +1,1 @@
- jnp.expand_dims(action + 10, -1)
+discount = jnp.array([0.99])    
