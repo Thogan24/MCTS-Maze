@@ -1,5 +1,6 @@
 import random
 import math
+import pygame
 # The program will ask for an (x, y) coordinate, then return nodes in the tree with that coordinate (multiple nodes bc different paths to same node)
 # It will return nodes with highest value, then say which is the best action from there based on simulations. 
 # The user should look at nodes with the highest visit count to determine where to move next
@@ -7,6 +8,58 @@ import math
 # Actions: 1 = Right, 2 = Left, 3 = Up, 4 = Down 
 
 #(0, 0) AT BOTTOM LEFT. (4, 4) AT TOP RIGHT
+# Pygame visualization, invalid moves
+
+pygame.init()
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 800
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+run = True
+gridSquare = pygame.Rect((100, 100, 200, 200))
+while run:
+    screen.fill((30, 30, 30))  
+
+    # Border only: width > 0
+    pygame.draw.rect(screen, (255, 0, 0), gridSquare, width=5)
+
+    # Filled rectangle (semi-transparent)
+    square = pygame.Surface((200, 200), pygame.SRCALPHA)
+    square.fill((0, 0, 0, 100))  # Green with transparency
+    screen.blit(square, (100, 100))
+
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+    pygame.display.update()
+pygame.quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 useRandomMaze = True
 maze = [
@@ -117,7 +170,7 @@ def selection(node):
         nextExploration = -100
         nextExplorationChild = None
         for child in node.children:
-                UCB1 = (child.reward/child.visits) + (300) * (math.sqrt(math.log(node.visits)/child.visits)) #Periodic exploration? abs(math.sin(simulations))
+                UCB1 = (child.reward/child.visits) + (3000) * (math.sqrt(math.log(node.visits)/child.visits)) #Periodic exploration? abs(math.sin(simulations))
                 if(UCB1 > nextExploration):
                     nextExploration = UCB1
                     nextExplorationChild = child
@@ -268,4 +321,7 @@ if __name__ == "__main__":
         print("Root moved to: ", root.state)
         root.children = []
     print("Path: ", path) 
+
+
+
 

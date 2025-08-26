@@ -11,13 +11,13 @@ from mctx import RootFnOutput, RecurrentFnOutput
 #(0, 0) AT TOP LEFT. (4, 4) AT BOTTOM 
 #COORDINATES ARE (y, x), since its row x col
 
-useRandomMaze = True
+useRandomMaze = False
 maze = jnp.array([
     [0, 0, 0, 0, 0],
-    [1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 1, 0, 0, 0],
+    [0, 1, 0, 1, 0],
+    [0, 0, 0, 1, 0],
 ])
 
 # MAZE GENERATOR CODE 
@@ -182,7 +182,7 @@ root = RootFnOutput(
     embedding=startPos #jnp.zeros((1, 3))                  
 )
 
-policy_output = mctx.gumbel_muzero_policy(params, rng_key, root, recurrent_fn, num_simulations=2000)
+policy_output = mctx.gumbel_muzero_policy(params, rng_key, root, recurrent_fn, num_simulations=100)
 #path.append(policy_output.action.item())
 
 def moveNextAction(policy_output, startPos, path):
@@ -239,7 +239,7 @@ while(not (startPos[0, 0].astype(int) == goal[0] and startPos[0, 1].astype(int) 
     embedding=startPos #jnp.zeros((1, 3))                  
     )
 
-    policy_output = mctx.gumbel_muzero_policy(params, rng_key, root, recurrent_fn, num_simulations=100)
+    policy_output = mctx.gumbel_muzero_policy(params, rng_key, root, recurrent_fn, num_simulations=100) # Update invalid actions
     
 print("Path: ", path) 
-print("Action probabilities:", policy_output.action_weights)
+#print("Action probabilities:", policy_output.action_weights)
