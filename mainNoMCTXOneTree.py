@@ -4,65 +4,14 @@ import math
 # It will return nodes with highest value, then say which is the best action from there based on simulations. 
 # The user should look at nodes with the highest visit count to determine where to move next
 
-# Actions: 1 = Right, 2 = Left, 3 = Up, 4 = Down 
-
 #(0, 0) AT BOTTOM LEFT. (4, 4) AT TOP RIGHT
-
-useRandomMaze = True
 maze = [
-    [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0],
+    [0, 1, 0, 0, 0],
+    [0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0],
 ]
-
-# MAZE GENERATOR CODE
-def generateMaze():
-    availableTiles = [0, 1]
-    maze = [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]
-    count = 0 #So maze 0, 0 and 4, 4 stay 0
-    while(count < 25):
-        action = random.choice(availableTiles)
-        maze[(count // 5)][(count) % 5] = action
-        count += 1
-    return maze
-
-
-# Recursive DFS function
-def is_solvable(maze):
-    rows = len(maze)
-    cols = len(maze[0])
-    start = [4, 0]
-    goal = [0, cols-1]
-
-    if maze[start[0]][start[1]] == 1 or maze[goal[0]][goal[1]] == 1:
-        return False  # blocked start or goal
-
-    visited = set()
-
-    def dfs(r, c):
-        
-        if r == goal[0] and c == goal[1]:
-            return True
-        visited.add((r, c))
-        #print(visited)
-        # Possible moves: up, down, left, right
-        directions = [(1,0), (-1,0), (0,1), (0,-1)]
-        for dr, dc in directions:
-            nr = r + dr
-            nc =  c + dc
-            if 0 <= nr < rows and 0 <= nc < cols:  # in bounds
-                if maze[nr][nc] == 0 and (nr, nc) not in visited:
-                    if dfs(nr, nc):
-                        return True
-        return False
-
-    return dfs(start[0], start[1])
-
-    
-
-# MCTS CODE
 
 def is_valid_move(state):
     x = state[0]
@@ -92,7 +41,7 @@ class Node:
 
 root = Node(state=[0, 0], lastAction=0)
 simulationsToRun = 10000
-horizonLimit = 100
+horizonLimit = 40
 simulations = 0
 
 
@@ -128,7 +77,7 @@ def selection(node):
 
 def expansion(node, action):
     
-    #print("Expansion on " + str(node.state[0]) + " " + str(node.state[1]))
+    print("Expansion on " + str(node.state[0]) + " " + str(node.state[1]))
     newState = node.state.copy()
     newState[0] += 1
     if (action == 1 ) and (is_valid_move(newState)): 
@@ -152,14 +101,14 @@ def expansion(node, action):
 
 
 def simulation(node):
-    #print("Simulation")
+    print("Simulation")
 
     newState = node.state.copy()
     rewardOfSimulation = 0
     discount = 1
     horizon = 0
     horizonLimitBroken = False
-    #print("Starting state: " + str(newState[0]) + ", " + str(newState[1]))
+    print("Starting state: " + str(newState[0]) + ", " + str(newState[1]))
     stateSearchPath = []
     while newState != [4, 4]:
         randomAction = random.randint(1, 4)
@@ -190,13 +139,13 @@ def simulation(node):
     if not horizonLimitBroken:
         rewardOfSimulation += 1000
     # Print entire search path on one line
-    #print("Search path: " + str(stateSearchPath))
+    print("Search path: " + str(stateSearchPath))
     backpropagation(node, rewardOfSimulation)
     
 
     
 def backpropagation(node, rewardOfSimulation):
-    #print("Backpropagation")
+    print("Backpropagation")
     global simulations 
 
     while(node.parent != None):
@@ -206,66 +155,52 @@ def backpropagation(node, rewardOfSimulation):
     node.visits += 1
     node.reward += rewardOfSimulation
     simulations += 1
+    if(simulations == simulationsToRun):
+        askForBestMove()
+    
+
+arrayOfAllNodes = []
+
+def askForBestMove():
+    
+    while(True):
+
+        xCord = int(input("Enter x coordinate: "))
+        yCord = int(input("Enter y coordinate: "))
+        node = root
+        findAllChildren(node)
+        for node in arrayOfAllNodes:
+            if (node.state == [xCord, yCord]) and (node.visits >= 500):
+                print("Node Visits: " + str(node.visits))
+                bestAverageReward = -100000
+                bestChild = Node([-5, -5], 0)
+                for child in node.children:
+                    print("Child reward " + str(child.state[0]) + ", " + str(child.state[1]) + ": " + str(child.reward/child.visits) + " | Visits: " + str(child.visits))
+                    if (child.reward/child.visits) > bestAverageReward:
+                        bestAverageReward = (child.reward/child.visits)
+                        bestChild = child
+                
+                if(bestChild.lastAction == 1):
+                    print("Move Right: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                elif(bestChild.lastAction == 2):
+                    print("Move Left: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                elif(bestChild.lastAction == 3):
+                    print("Move Up: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                elif(bestChild.lastAction == 4):
+                    print("Move Down: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
 
 
 
+                
+def findAllChildren(node):
+    
+    arrayOfAllNodes.append(node)
+    if(node.is_leaf() == False):
+        for child in node.children:
+            findAllChildren(child)
+    return
             
 
 if __name__ == "__main__":
-    path = []
-
-    if(useRandomMaze):
-        maze = generateMaze()    
-        while(not is_solvable(maze=maze)):
-            maze = generateMaze()
-        for row in maze:
-            print(row)
-
-
-    while(root.state != [4, 4]):
-        simulations = 0
-        while(simulations < simulationsToRun):
-            selection(root)
-
-        
-        bestAverageReward = -100000
-        bestChild = Node([-5, -5], 0)
-        for child in root.children:
-            print("Child reward " + str(child.state[0]) + ", " + str(child.state[1]) + ": " + str(child.reward/child.visits) + " | Visits: " + str(child.visits))
-            if (child.reward/child.visits) > bestAverageReward:
-                bestAverageReward = (child.reward/child.visits)
-                bestChild = child
-
-
-        if(bestChild.lastAction == 1):
-            print("Move Right: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Right")
-            root.state[0] += 1
-            if(is_valid_move(root.state)):
-                root.state[0] += 1
-            root.state[0] -= 1
-        elif(bestChild.lastAction == 2):
-            print("Move Left: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Left")
-            root.state[0] -= 1
-            if(is_valid_move(root.state)):
-                root.state[0] -= 1
-            root.state[0] += 1
-        elif(bestChild.lastAction == 3):
-            print("Move Up: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Up")
-            root.state[1] += 1
-            if(is_valid_move(root.state)):
-                root.state[1] += 1
-            root.state[1] -= 1
-        elif(bestChild.lastAction == 4):
-            print("Move Down: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Down")
-            root.state[1] -= 1
-            if(is_valid_move(root.state)):
-                root.state[1] -= 1
-            root.state[1] += 1
-        print("Root moved to: ", root.state)
-        root.children = []
-    print("Path: ", path) 
-
+    while(simulations < simulationsToRun):
+        selection(root)
