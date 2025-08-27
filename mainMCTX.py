@@ -452,10 +452,7 @@ while run:
                     upEmbeding = startPos.at[0, 0].add(-1)
                     rightEmbeding = startPos.at[0, 1].add(1)
                     leftEmbeding = startPos.at[0, 1].add(-1)
-                    print(is_valid_tile(upEmbeding))
-                    print(is_valid_tile(leftEmbeding))
-                    print(is_valid_tile(downEmbeding))
-                    print(is_valid_tile(rightEmbeding))
+                    
                     root = RootFnOutput(
                         
                         # Vector with important information, not exactly the raw state
