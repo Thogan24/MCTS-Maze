@@ -10,68 +10,23 @@ import pygame
 #(0, 0) AT BOTTOM LEFT. (4, 4) AT TOP RIGHT
 # Pygame visualization, invalid moves
 
-pygame.init()
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+# Text wrapping
+# Show player going through the maze
+# Arrows if time
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-run = True
-gridSquare = pygame.Rect((100, 100, 200, 200))
-while run:
-    screen.fill((30, 30, 30))  
-
-    # Border only: width > 0
-    pygame.draw.rect(screen, (255, 0, 0), gridSquare, width=5)
-
-    # Filled rectangle (semi-transparent)
-    square = pygame.Surface((200, 200), pygame.SRCALPHA)
-    square.fill((0, 0, 0, 100))  # Green with transparency
-    screen.blit(square, (100, 100))
-
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-    pygame.display.update()
-pygame.quit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-useRandomMaze = True
 maze = [
     [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 1],
     [0, 0, 0, 0, 0],
-    [1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
 ]
+path = []
+pathPos = []
 
 # MAZE GENERATOR CODE
 def generateMaze():
+    
     availableTiles = [0, 1]
     maze = [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]
     count = 0 #So maze 0, 0 and 4, 4 stay 0
@@ -112,8 +67,6 @@ def is_solvable(maze):
         return False
 
     return dfs(start[0], start[1])
-
-    
 
 # MCTS CODE
 
@@ -262,66 +215,253 @@ def backpropagation(node, rewardOfSimulation):
 
 
 
-            
-
-if __name__ == "__main__":
-    path = []
-
-    if(useRandomMaze):
-        maze = generateMaze()    
-        while(not is_solvable(maze=maze)):
-            maze = generateMaze()
-        for row in maze:
-            print(row)
 
 
-    while(root.state != [4, 4]):
-        simulations = 0
-        while(simulations < simulationsToRun):
-            selection(root)
+# GUI
 
+pygame.init()
+screen = pygame.display.set_mode((800, 900))  # taller for buttons
+pygame.display.set_caption("Tyler Hogan - MCTS Maze Solver")
+
+
+player_img = pygame.image.load("Smile2.png")
+player_img = pygame.transform.scale(player_img, (100, 100))
+# Grid settings
+square_size = 100
+rows, cols = 5, 5
+start_y = 50 #?
+
+# Center the grid horizontally
+grid_width = cols * square_size
+start_x = (screen.get_width() - grid_width) // 2
+
+# Colors
+FILL_COLOR = (0, 0, 0, 100)      # default semi-transparent black
+HOVER_COLOR = (0, 100, 255, 120) # hover blue
+CLICK_COLOR = (255, 255, 255, 255)   # clicked green
+LINE_COLOR = (255, 0, 0)         # red border
+BUTTON_COLOR = (70, 70, 70)
+BUTTON_HOVER = (120, 120, 120)
+TEXT_COLOR = (255, 255, 255)
+
+# Track clicked cells
+clicked = [[False for _ in range(cols)] for _ in range(rows)]
+
+# Fonts
+font = pygame.font.SysFont("dejavuserif", 36)
+
+# Define buttons
+button_width, button_height = 320, 50
+button_y = 750
+button1_rect = pygame.Rect(70, button_y, button_width, button_height)
+button2_rect = pygame.Rect(420, button_y, button_width, button_height)
+
+run = True
+while run:
+    screen.fill((30, 30, 30))
+    mouse_pos = pygame.mouse.get_pos()
+
+    # Draw grid
+    for row in range(rows):
+        for col in range(cols):
+            x = start_x + col * square_size
+            y = start_y + row * square_size
+
+            # Invisible, but allows for mouse clicking
+            rect = pygame.Rect(x, y, square_size, square_size)
+
+            # This allows for highlighting!
+            square = pygame.Surface((square_size, square_size), pygame.SRCALPHA) # Makes the square semi-transparent
+
+            # Decide color
+            if rect.collidepoint(mouse_pos):
+                if clicked[row][col]:
+                    square.fill(CLICK_COLOR)
+                else:
+                    square.fill(HOVER_COLOR)
+            else:
+                if clicked[row][col]:
+                    square.fill(CLICK_COLOR)
+                else:
+                    square.fill(FILL_COLOR)
+
+            screen.blit(square, (x, y)) #Need blit for surface to place in spot
+
+    # Seperately draw grid lines so that borders don't collide
+    grid_height = rows * square_size
+    for c in range(cols + 1):
+        x = start_x + c * square_size
+        pygame.draw.line(screen, LINE_COLOR, (x, start_y), (x, start_y + grid_height), width=3)
+    for r in range(rows + 1):
+        y = start_y + r * square_size
+        pygame.draw.line(screen, LINE_COLOR, (start_x, y), (start_x + grid_width, y), width=3)
+
+    # --- Draw buttons ---
+    for rect, text in [(button1_rect, "Generate Maze"),
+                       (button2_rect, "Solve Maze")]:
+        color = BUTTON_HOVER if rect.collidepoint(mouse_pos) else BUTTON_COLOR
+        pygame.draw.rect(screen, color, rect, border_radius=10) # Filled rectangle
+        pygame.draw.rect(screen, LINE_COLOR, rect, width=2, border_radius=10) # The border
+        label = font.render(text, True, TEXT_COLOR)
+        screen.blit(label, (rect.centerx - label.get_width() // 2,
+                            rect.centery - label.get_height() // 2)) # Need blit for text to place in spot
+
+    
+
+
+    
+
+
+
+
+
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # Check grid clicks, creates temporary grid of cells and checks over each one to see if they're clicked
+            for row in range(rows):
+                for col in range(cols):
+                    x = start_x + col * square_size
+                    y = start_y + row * square_size
+                    rect = pygame.Rect(x, y, square_size, square_size)
+                    if rect.collidepoint(event.pos):
+                        path = []
+                        pathPos = []
+                        clicked[row][col] = not clicked[row][col]
+                        print(f"Clicked cell: ({col}, {4-row})")
+                        if(clicked[row][col]):
+                            maze[row][col] = 1
+                        else:
+                            maze[row][col] = 0
+                        
+
+            # Check button clicks
+            if button1_rect.collidepoint(event.pos):
+                print("Randomly generating maze... (placeholder)")
+                path = []
+                pathPos = []
+                maze = generateMaze()    
+                while(not is_solvable(maze=maze)):
+                    maze = generateMaze()
+                for row in range(len(maze)):
+                    for col in range(len(maze[row])):
+                        if(maze[row][col] == 1):
+                            clicked[row][col] = 1
+                        else:
+                            clicked[row][col] = 0
+
+
+
+            elif button2_rect.collidepoint(event.pos):
+
+                if(not is_solvable(maze=maze)):
+                    text1 = "Not solveable"
+
+                print("Solving maze...")
+
+                # Render text
+                text1 = "Solving Maze..."
+                label3 = font.render("Solving Maze...", True, TEXT_COLOR)
+
+                # Position below the maze
+                text_x = start_x + (grid_width - label3.get_width()) // 2
+                text_y = start_y + row * square_size + 150
+                screen.blit(label3, (text_x, text_y))
+
+                screen.blit(player_img, (start_x, 5 * square_size - start_y))
+
+                pygame.display.update()
+                if(is_solvable(maze=maze)):
+                    root.state = [0, 0]
+                    path = []
+                    pathPos = []
+                    pathPos.append([0, 0])
+                    while(root.state != [4, 4]):
+                        simulations = 0
+                        while(simulations < simulationsToRun):
+                            selection(root)
+
+                        
+                        bestAverageReward = -100000
+                        bestChild = Node([-5, -5], 0)
+                        for child in root.children:
+                            print("Child reward " + str(child.state[0]) + ", " + str(child.state[1]) + ": " + str(child.reward/child.visits) + " | Visits: " + str(child.visits))
+                            if (child.reward/child.visits) > bestAverageReward:
+                                bestAverageReward = (child.reward/child.visits)
+                                bestChild = child
+
+
+                        if(bestChild.lastAction == 1):
+                            print("Move Right: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                            path.append("→")
+                            
+                            root.state[0] += 1
+                            if(is_valid_move(root.state)):
+                                root.state[0] += 1
+                            root.state[0] -= 1
+                            pathPos.append(root.state.copy())
+                        elif(bestChild.lastAction == 2):
+                            print("Move Left: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                            path.append("←")
+                            root.state[0] -= 1
+                            if(is_valid_move(root.state)):
+                                root.state[0] -= 1
+                            root.state[0] += 1
+                            pathPos.append(root.state.copy())
+                        elif(bestChild.lastAction == 3):
+                            print("Move Up: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                            path.append("↑")
+                            root.state[1] += 1
+                            if(is_valid_move(root.state)):
+                                root.state[1] += 1
+                            root.state[1] -= 1
+                            pathPos.append(root.state.copy())
+                        elif(bestChild.lastAction == 4):
+                            print("Move Down: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
+                            path.append("↓")
+                            root.state[1] -= 1
+                            if(is_valid_move(root.state)):
+                                root.state[1] -= 1
+                            root.state[1] += 1
+                            pathPos.append(root.state.copy())
+                        print("Root moved to: ", root.state)
+                        
+                        root.children = []
+                        
+                        screen.blit(player_img, (start_x + root.state[0] * square_size, start_y + (4-root.state[1]) * square_size))
+                        pygame.display.update()
+                    
+
+
+    # Write the path
+    pathString = ""
+    for direction in path:
+        pathString += direction + ", "
+    pathString = pathString[:-2]  # remove last comma+space
+
+    # Render text
+    text1 = pathString
+    if(not is_solvable(maze=maze)):
+        text1 = "Not solveable"
+    
+    label2 = font.render(text1, True, TEXT_COLOR)
+
+    
+    # Position below the maze
+    text_x = start_x + (grid_width - label2.get_width()) // 2
+    text_y = start_y + row * square_size + 150  
+    screen.blit(label2, (text_x, text_y))
+    
+    
+
+    for pos in pathPos:
+        x_pixel = start_x + pos[0] * square_size
+        y_pixel = start_y + (4 - pos[1]) * square_size  # adjust for bottom-left origin
+        screen.blit(player_img, (x_pixel, y_pixel))
         
-        bestAverageReward = -100000
-        bestChild = Node([-5, -5], 0)
-        for child in root.children:
-            print("Child reward " + str(child.state[0]) + ", " + str(child.state[1]) + ": " + str(child.reward/child.visits) + " | Visits: " + str(child.visits))
-            if (child.reward/child.visits) > bestAverageReward:
-                bestAverageReward = (child.reward/child.visits)
-                bestChild = child
-
-
-        if(bestChild.lastAction == 1):
-            print("Move Right: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Right")
-            root.state[0] += 1
-            if(is_valid_move(root.state)):
-                root.state[0] += 1
-            root.state[0] -= 1
-        elif(bestChild.lastAction == 2):
-            print("Move Left: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Left")
-            root.state[0] -= 1
-            if(is_valid_move(root.state)):
-                root.state[0] -= 1
-            root.state[0] += 1
-        elif(bestChild.lastAction == 3):
-            print("Move Up: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Up")
-            root.state[1] += 1
-            if(is_valid_move(root.state)):
-                root.state[1] += 1
-            root.state[1] -= 1
-        elif(bestChild.lastAction == 4):
-            print("Move Down: " + str(bestChild.state[0]) + ", " + str(bestChild.state[1]))
-            path.append("Down")
-            root.state[1] -= 1
-            if(is_valid_move(root.state)):
-                root.state[1] -= 1
-            root.state[1] += 1
-        print("Root moved to: ", root.state)
-        root.children = []
-    print("Path: ", path) 
-
-
-
+        
+    pygame.display.update()
+pygame.quit()
 
