@@ -1,4 +1,6 @@
-AI Maze solver which uses MCTS (Monte Carlo Search Tree) algorithm. While mazes can be solved with simpler algorithms like DFS or BFS, this project focuses on implementing and optimizing MCTS given its recent breakthroughs in games like Chess and Go.
+# MCTS Maze Solver
+
+An AI Maze solver which uses the Monte Carlo Search Tree algorithm. While mazes can be solved with simpler algorithms like DFS or BFS, this project focuses on implementing and optimizing MCTS given its recent breakthroughs in games like Chess and Go.
 
 This project has two main programs:
 - MCTS maze solver in pure python (only Pygame for visualization)
