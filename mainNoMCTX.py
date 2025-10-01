@@ -97,7 +97,7 @@ class Node:
     # Potentially terminating factor
 
 root = Node(state=[0, 0], lastAction=0)
-simulationsToRun = 10000
+simulationsToRun = 2000
 horizonLimit = 100
 simulations = 0
 
